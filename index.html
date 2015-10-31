@@ -46,10 +46,10 @@
                     <content>
                         <List id="categoryList" headerText="" noDataText="Нет данных">
                             <items>
-                                <StandardListItem type="Active" counter="5" title="Категория 1" press=".pressExample"/>
-                                <StandardListItem type="Active" counter="2" title="Категория 2" press=".pressExample"/>
-                                <StandardListItem type="Active" counter="4" title="Категория 3" press=".pressExample"/>
-                                <StandardListItem type="Active" counter="7" title="Категория 4" press=".pressExample"/>
+                                <StandardListItem type="Active" counter="5" title="Категория 1" press=".onItemPress"/>
+                                <StandardListItem type="Active" counter="2" title="Категория 2" press=".onItemPress"/>
+                                <StandardListItem type="Active" counter="4" title="Категория 3" press=".onItemPress"/>
+                                <StandardListItem type="Active" counter="7" title="Категория 4" press=".onItemPress"/>
                             </items>
                         </List>
                     </content>
@@ -191,33 +191,84 @@
         <!-- Подключение страниц -->
         <script>
             // Controller definition 4 Master
-            sap.ui.controller("local.controller.Master", {
-                pressExample: function(oEvent) {
-                  alert('Нажат элемент '+oEvent.getSource().getTitle());				  
-                },           
+            sap.ui.controller("local.controller.Master", {               
+				onItemPress: function(oEvent) {
+                 // alert('Нажат элемент '+oEvent.getSource().getTitle());						
+					this.openEditDialog(oEvent);
+                },  
+				openEditDialog: function(oEvent){					
+					var oItem = oEvent.getSource();
+
+					//Edit Category Form	
+					var oEditCategoryForm  = this.createCategoryForm(oItem.getTitle(), oItem.getCounter());		
+										
+					var oDialog =  this.createCategoryDialog(
+									"Редактирование", 
+									oEditCategoryForm, 
+									function(title, counter){
+											oItem.setTitle(title);
+											oItem.setCounter(oNumberFormat.parse(counter));
+									});
+					
+					oDialog.open();                
+				},
                 onAddCategoryPress: function(oEvent) {
-					 //New Category Form		
-					var oNewCategoryForm = new sap.ui.layout.form.SimpleForm({				
+					 //New Category Form	
+					var oNewCategoryForm  = this.createCategoryForm("{title}", "{counter}")					 
+									 
+					 var oList = this.getView().byId("categoryList"); 
+					 var itemHandler = this.onItemPress.bind(this);
+					 
+					 var oDialog =  this.createCategoryDialog(
+									"Новая категория", 
+									oNewCategoryForm, 
+									function(title, counter){
+										var oItem = new sap.m.ObjectListItem({
+											counter: oNumberFormat.parse(counter),
+											title: title,											
+											type:  sap.m.ListType.Active,
+											press: itemHandler,
+										  });
+										oList.addItem(oItem);
+									});				 
+					
+					oDialog.open();
+
+                },
+				createCategoryForm: function(titleVal, counterVal){
+					/* если при закрытии диалога объект sap.ui.layout.form.SimpleForm удаляется сам,
+						то надо его при каждом вызове создвать, 
+						а если не удаляется, то здесь надо переделать на showCategoryForm,
+						которая  проверяет, есть ли уже форма, и тогда заполняет переданными данными, 
+						или создает ее при первом вызове.
+					*/
+					var title = titleVal ? titleVal : "";
+					var counter  = counterVal ? counterVal : 0;
+					
+					return new sap.ui.layout.form.SimpleForm({				
 						  content:[					  
 							  new sap.m.Label({text : "Заголовок", design : "Bold", textAlign : "Begin"}),
-							  new sap.m.Input({value : "{title}"}),
+							  new sap.m.Input({value : title}),
 							  new sap.m.Label({text : "Число", design : "Bold", textAlign : "Begin"}),
-							  new sap.m.Input({type : "Number", value : "{counter}"}),				  
+							  new sap.m.Input({type : "Number", value : counter}),				  
 						  ]
-					});
-					 
-					 var oList = this.getView().byId("categoryList"); 
-					 var itemHandler = this.pressExample;
-					 
-					 var oDialog = new sap.m.Dialog({  
-						  title : "Новая категория", 
-						  content : [oNewCategoryForm],
+					});											
+				},
+				
+				createCategoryDialog: function(headerText, form, saveActionFunc){
+					/*
+					здесь то же самое - если объект диалога при закрытии сам не удаляется, то лучше создать один и вызывать потом с новым контентом. сейчас создается каждый раз
+					*/
+					
+					var dialog =  new sap.m.Dialog({  
+						  title : headerText || "", 
+						  content : form,
 						  buttons : [
 							  new sap.m.Button({  
 								  type : sap.m.ButtonType.Accept,
 								  text: "Сохранить",
 								  press : function(){									
-									var content  = oNewCategoryForm.getContent();
+									var content  = form.getContent();
 									var counter =  content[3].getValue();
 									//content[1],content[3] - так не очень хорошо, не нашла как сделать по-человечнее
 									var title =  content[1].getValue();
@@ -231,14 +282,10 @@
 											of:content[3]
 										});
 									}else{									
-										var oItem = new sap.m.ObjectListItem({
-											counter: oNumberFormat.parse(counter),
-											title: title,											
-											type:  sap.m.ListType.Active,
-											press: itemHandler,
-										  });
-										 oList.addItem(oItem);
-										 oDialog.close();	
+										if (saveActionFunc && (typeof saveActionFunc == 'function')){
+											saveActionFunc(title, counter);
+											dialog.close();
+										}											
 									 };
 									 
 								  },   
@@ -247,15 +294,15 @@
 								  type : sap.m.ButtonType.Reject, 
 								  text: "Отменить",
 								  press : function(){
-									oDialog.close();
+									dialog.close();
 								  },
 							  }), 
 							  
 							]
 					}) ;
-					oDialog.open();
-
-                }
+					
+					return dialog;
+				}
             });
 
             // Controller definition 4 Detail
