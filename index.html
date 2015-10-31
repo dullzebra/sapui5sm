@@ -97,7 +97,8 @@
                                         text="Продукты"
                                        >
 										 <content>
-												<List >
+	
+										 <Table selectionmode= "multi">								
 													<headerToolbar>
 													  <Toolbar>
 														<Title text="Продукты" level="H2" />
@@ -120,36 +121,43 @@
 														<Label text="This is the info bar" />
 													  </Toolbar>
 													</infoToolbar>
+													<columns>
+														<Column width="2em"></Column>
+														<Column width="48px" ></Column>
+														<Column width="100%"></Column>																	
+													</columns>						
 													<items>
-														<StandardListItem
-															title = "Power Projector 4713"
-															description = "1239102"
-															icon = "https://sapui5.hana.ondemand.com/sdk/test-resources/sap/ui/demokit/explored/img/HT-6100.jpg"
-															iconDensityAware="false"
-															iconInset="false" />
+														<ColumnListItem type="Active" press=".onProductRowPress">	
+															<cells>
+																<CheckBox text="" select="onProductSelect" />
+																<Image  width="48px" src = "https://sapui5.hana.ondemand.com/sdk/test-resources/sap/ui/demokit/explored/img/HT-6100.jpg" />
+																<ObjectIdentifier title="Power Projector 4713" text="1239102" />
+															</cells>
+														</ColumnListItem>														
+														<ColumnListItem type="Active" press=".onProductRowPress">	
+															<cells>
+																<CheckBox text="" select="onProductSelect" />			
+																<Image  width="48px" src = "https://sapui5.hana.ondemand.com/sdk/test-resources/sap/ui/demokit/explored/img/HT-1071.jpg" />
+																<ObjectIdentifier title="Gladiator MX" text="2212-121-828" />
+															</cells>
+														</ColumnListItem>		
+														<ColumnListItem type="Active" press=".onProductRowPress">	
+															<cells>
+																<CheckBox text="" select="onProductSelect" />			
+																<Image  width="48px" src = "https://sapui5.hana.ondemand.com/sdk/test-resources/sap/ui/demokit/explored/img/HT-1072.jpg" />
+																<ObjectIdentifier title="Hurricane GX" text="K47322.1" />
+															</cells>
+														</ColumnListItem>		
+														<ColumnListItem type="Active" press=".onProductRowPress">		
+															<cells>
+																<CheckBox text="" select="onProductSelect" />			
+																<Image  width="48px" src = "https://sapui5.hana.ondemand.com/sdk/test-resources/sap/ui/demokit/explored/img/HT-1112.jpg" />
+																<ObjectIdentifier title="Webcam" text="22134T" />
+															</cells>
+														</ColumnListItem>
 
-														<StandardListItem
-															title = "Gladiator MX"
-															description = "2212-121-828"
-															icon = "https://sapui5.hana.ondemand.com/sdk/test-resources/sap/ui/demokit/explored/img/HT-1071.jpg"
-															iconDensityAware="false"
-															iconInset="false" />
-
-														<StandardListItem
-															title = "Hurricane GX"
-															description = "K47322.1"
-															icon = "https://sapui5.hana.ondemand.com/sdk/test-resources/sap/ui/demokit/explored/img/HT-1072.jpg"
-															iconDensityAware="false"
-															iconInset="false" />
-
-														<StandardListItem
-															title = "Webcam"
-															description = "22134T"
-															icon = "https://sapui5.hana.ondemand.com/sdk/test-resources/sap/ui/demokit/explored/img/HT-1112.jpg"
-															iconDensityAware="false"
-															iconInset="false" />
 													</items>
-												</List>
+												</Table>
 											</content>
 										</IconTabFilter>
 										<IconTabFilter
@@ -325,7 +333,13 @@
 
             // Controller definition 4 Detail
             sap.ui.controller("local.controller.Detail", {
-
+				onProductRowPress: function(oEvent){
+					oEvent.preventDefault();
+					console.log(oEvent)
+					//опять не знаю, как обратитья именно к чекбоксу, а не по порядку элементов
+					var chbox = oEvent.getSource().getCells()[0];
+					chbox.setSelected(!chbox.getSelected());
+				}
             });
 
             var splitApp = new sap.m.SplitApp({
