@@ -20,7 +20,7 @@
             type="text/javascript"
             src="https://sapui5.hana.ondemand.com/sdk/resources/sap-ui-core.js"
             data-sap-ui-theme="sap_bluecrystal"
-            data-sap-ui-libs="sap.m"
+            data-sap-ui-libs="sap.m, sap.ui.layout"
             data-sap-ui-xx-bindingSyntax="complex"
         >
         </script>
@@ -55,6 +55,8 @@
                     </content>
                     <footer>
                         <Toolbar>
+						 <ToolbarSpacer />
+						<Button text="Добавить категорию" icon="sap-icon://add" press=".onAddCategoryPress" />
                         </Toolbar>
                     </footer>
                 </Page>
@@ -176,7 +178,9 @@
                         <Toolbar>
                             <content>
                                 <ToolbarSpacer />
-                                <Button text="Добавить в корзину" icon="sap-icon://add" />
+								
+                                <Button text="Добавить в корзину" icon="sap-icon://add" /> 
+								
                             </content>
                         </Toolbar>
                     </footer>
@@ -189,7 +193,68 @@
             // Controller definition 4 Master
             sap.ui.controller("local.controller.Master", {
                 pressExample: function(oEvent) {
-                  alert('Нажат элемент '+oEvent.getSource().getTitle());
+                  alert('Нажат элемент '+oEvent.getSource().getTitle());				  
+                },           
+                onAddCategoryPress: function(oEvent) {
+					 //New Category Form		
+					var oNewCategoryForm = new sap.ui.layout.form.SimpleForm({				
+						  content:[					  
+							  new sap.m.Label({text : "Заголовок", design : "Bold", textAlign : "Begin"}),
+							  new sap.m.Input({value : "{title}"}),
+							  new sap.m.Label({text : "Число", design : "Bold", textAlign : "Begin"}),
+							  new sap.m.Input({type : "Number", value : "{counter}"}),				  
+						  ]
+					});
+					 
+					 var oList = this.getView().byId("categoryList"); 
+					 var itemHandler = this.pressExample;
+					 
+					 var oDialog = new sap.m.Dialog({  
+						  title : "Новая категория", 
+						  content : [oNewCategoryForm],
+						  buttons : [
+							  new sap.m.Button({  
+								  type : sap.m.ButtonType.Accept,
+								  text: "Сохранить",
+								  press : function(){									
+									var content  = oNewCategoryForm.getContent();
+									var counter =  content[3].getValue();
+									//content[1],content[3] - так не очень хорошо, не нашла как сделать по-человечнее
+									var title =  content[1].getValue();
+									
+									if (title == "" ){					
+										sap.m.MessageToast.show("Введите название категории",{
+											of:content[1]
+										});
+									}else if (counter == "" ){					
+										sap.m.MessageToast.show("Введите количество",{
+											of:content[3]
+										});
+									}else{									
+										var oItem = new sap.m.ObjectListItem({
+											counter: oNumberFormat.parse(counter),
+											title: title,											
+											type:  sap.m.ListType.Active,
+											press: itemHandler,
+										  });
+										 oList.addItem(oItem);
+										 oDialog.close();	
+									 };
+									 
+								  },   
+							  }),
+							  new sap.m.Button({  
+								  type : sap.m.ButtonType.Reject, 
+								  text: "Отменить",
+								  press : function(){
+									oDialog.close();
+								  },
+							  }), 
+							  
+							]
+					}) ;
+					oDialog.open();
+
                 }
             });
 
@@ -207,7 +272,16 @@
                 showLogout:false,
                 app:splitApp
             })
-
+			
+			//Common Helpers
+			jQuery.sap.require("sap.m.MessageToast");
+			jQuery.sap.require("sap.ui.core.format.NumberFormat");
+			
+			var oNumberFormat = sap.ui.core.format.NumberFormat.getIntegerInstance({
+			  maxFractionDigits: 0,
+			  groupingEnabled: false
+			});
+			
             // oView.setModel(new sap.ui.model.json.JSONModel("https://openui5.hana.ondemand.com/test-resources/sap/ui/demokit/explored/products.json"));
 
             shell.placeAt('content');
